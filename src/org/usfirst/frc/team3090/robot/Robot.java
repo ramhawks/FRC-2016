@@ -80,9 +80,14 @@ public class Robot extends IterativeRobot {
 		if (stick.getRawButton(3)) {
 			// y
 			RobotParts.lift_motor_1.set(1);
-			RobotParts.lift_motor_2.set(1);
+			RobotParts.lift_motor_2.set(-1);
 		} else if (stick.getRawButton(0)) {
 			// a
+			RobotParts.lift_motor_1.set(-1);
+			RobotParts.lift_motor_2.set(1);
+		} else {
+			RobotParts.lift_motor_1.set(0);
+			RobotParts.lift_motor_2.set(0);
 		}
 	}
 
