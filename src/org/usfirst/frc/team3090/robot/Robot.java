@@ -20,7 +20,7 @@ public class Robot extends IterativeRobot {
 	SendableChooser<String> chooser = new SendableChooser<>();
 	final Joystick stick = new Joystick(0);
 	
-	RobotDrive drive = new RobotDrive(2, 3, 4, 5);
+	RobotDrive drive = new RobotDrive(0, 1, 2, 3);
 
 	/**
 	 * This function is run when the robot is first started up and should be
