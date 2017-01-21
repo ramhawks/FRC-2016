@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -36,12 +37,15 @@ public class Robot extends IterativeRobot {
 	Thread vision_thread; //camera
 	AHRS ahrs; //navX micro
 	
+	NetworkTable table;
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
 	 */
 	
-	
+	public Robot() {
+		table = NetworkTable.getTable("GRIP/myContoursReport");
+	}
 	
 	@Override
 	public void robotInit() {
@@ -66,6 +70,7 @@ public class Robot extends IterativeRobot {
 			// Mats are very memory expensive. Lets reuse this Mat.
 			Mat mat = new Mat();
 
+
 			// This cannot be 'true'. The program will never exit if it is. This
 			// lets the robot stop this thread when restarting robot code or
 			// deploying.
@@ -82,7 +87,7 @@ public class Robot extends IterativeRobot {
 				/*Imgproc.rectangle(mat, new Point(100, 100), new Point(400, 400),
 						new Scalar(255, 255, 255), 5);*/
 				// Give the output stream a new image to display
-				outputStream.putFrame(mat);
+				
 			}
 		});
 		vision_thread.setDaemon(true);
