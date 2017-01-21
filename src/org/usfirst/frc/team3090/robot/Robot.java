@@ -34,7 +34,10 @@ public class Robot extends IterativeRobot {
 	
 	RobotDrive drive = new RobotDrive(0, 1, 2, 3); //Robot Drive (LF, LR, RF, RR)
 	
+	// Threads
 	Thread vision_thread; //camera
+	Thread grip;
+	
 	AHRS ahrs; //navX micro
 	
 	NetworkTable table;
@@ -42,10 +45,6 @@ public class Robot extends IterativeRobot {
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
 	 */
-	
-	public Robot() {
-		table = NetworkTable.getTable("GRIP/myContoursReport");
-	}
 	
 	@Override
 	public void robotInit() {
@@ -92,6 +91,22 @@ public class Robot extends IterativeRobot {
 		});
 		vision_thread.setDaemon(true);
 		vision_thread.start();
+		
+		table = NetworkTable.getTable("GRIP/myContoursReport");
+		
+		grip = new Thread(() -> {
+			double[] defaultValue = new double[0];
+			while (!Thread.interrupted()) {
+				double[] areas = table.getNumberArray("area", defaultValue);
+				System.out.println("Areas: ");
+				for (double area : areas) {
+					System.out.print(area + " ");
+				}
+				System.out.println();
+				Timer.delay(1);
+			}
+		});
+		grip.start();
 		
 		/*navX micro Sensor*/
 		
