@@ -57,7 +57,7 @@ public class Robot extends IterativeRobot {
 		
 		vision_thread = new Thread(() -> {
 			// Get the Axis camera from CameraServer
-			AxisCamera camera = CameraServer.getInstance().addAxisCamera("10.30.90.89");
+			AxisCamera camera = CameraServer.getInstance().addAxisCamera("axis-camera.local");
 			// Set the resolution
 			camera.setResolution(640, 480);
 
@@ -86,7 +86,7 @@ public class Robot extends IterativeRobot {
 				/*Imgproc.rectangle(mat, new Point(100, 100), new Point(400, 400),
 						new Scalar(255, 255, 255), 5);*/
 				// Give the output stream a new image to display
-				
+				outputStream.putFrame(mat);
 			}
 		});
 		vision_thread.setDaemon(true);
@@ -155,6 +155,17 @@ public class Robot extends IterativeRobot {
 			// Put default auto code here
 			break;
 		}
+	}
+	
+	@Override
+	public void teleopInit() {
+
+	}
+
+	
+	@Override
+	public void disabledInit() {
+
 	}
 
 	/**
