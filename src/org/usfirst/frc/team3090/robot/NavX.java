@@ -6,11 +6,27 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDOutput;
+import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-public class NavX {
+public class NavX implements PIDOutput {
 	private AHRS ahrs;
 	private PIDController pid_controller;
+	private volatile double rotateToAngleRate;
+	
+	private volatile Joystick stick;
+	private volatile float angle;
+	private volatile RobotDrive drive;
+	private Thread turn_thread;
+	
+	// PID Controller constants
+	static final double kP = 0.03;
+	static final double kI = 0.00;
+	static final double kD = 0.00;
+	static final double kF = 0.00;
+	
+	static final double kToleranceDegrees = 2.0f;
 	
 	public void init() {
 		try {
@@ -21,7 +37,35 @@ public class NavX {
 	      } catch (RuntimeException ex ) {
 	          DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), true);
 	      }
+		
+		pid_controller = new PIDController(kP, kI, kD, kF, ahrs, this);
+		pid_controller.setInputRange(-180.0f,  180.0f);
+		pid_controller.setOutputRange(-1.0, 1.0);
+		pid_controller.setAbsoluteTolerance(kToleranceDegrees);
+		pid_controller.setContinuous(true);
+		
+		turn_thread = new Thread(new Runnable() {
+			public void run() {
+				DriverStation.reportWarning("Hello world!", false);
+				ahrs.reset();
+				
+				DriverStation.reportWarning("angle: " + angle, false);
+				DriverStation.reportWarning("Rotating? " + ahrs.isRotating(), false);
+				
+				pid_controller.setSetpoint(angle);
+				pid_controller.enable();
+				
+				DriverStation.reportWarning("Rotating? " + ahrs.isRotating(), false);
+				
+				/*while(ahrs.isRotating()) {
+					drive.mecanumDrive_Cartesian(stick.getX(), stick.getY(), 
+						rotateToAngleRate, ahrs.getAngle());
+				}*/
+			}
+		});
 	}
+	
+	
 	
 	public void showData(Joystick stick) {
 		boolean zero_yaw_pressed = stick.getTrigger();
@@ -192,6 +236,21 @@ public class NavX {
         /* Connectivity Debugging Support                                           */
         SmartDashboard.putNumber(   "IMU_Byte_Count",       Math.round(100.0 * ahrs.getByteCount()) / 100.0);
         SmartDashboard.putNumber(   "IMU_Update_Count",     Math.round(100.0 * ahrs.getUpdateCount()) / 100.0);
+	}
+
+
+
+	
+	public void rotateToAngle(Joystick stick, float angle, RobotDrive drive) {
+		this.stick = stick;
+		this.angle = angle;
+		this.drive = drive;
+		turn_thread.start();
+	}
+	
+	@Override
+	public void pidWrite(double output) {
+		rotateToAngleRate = output;
 	}
 	
 }

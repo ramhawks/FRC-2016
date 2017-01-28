@@ -2,17 +2,12 @@ package org.usfirst.frc.team3090.robot;
 
 import org.opencv.core.Mat;
 
-import com.kauailabs.navx.frc.AHRS;
-
 import edu.wpi.cscore.AxisCamera;
 import edu.wpi.cscore.CvSink;
 import edu.wpi.cscore.CvSource;
 import edu.wpi.first.wpilibj.CameraServer;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
@@ -152,7 +147,7 @@ public class Robot extends IterativeRobot {
 	
 	@Override
 	public void teleopInit() {
-
+		navx.rotateToAngle(stick, 90.0f, drive);
 	}
 
 	
@@ -166,10 +161,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		
-		
 		drive.tankDrive(stick.getRawAxis(1), stick.getRawAxis(5));
-		Timer.delay(0.005);
 		
 		if (stick.getRawButton(3)) {
 			// y
@@ -184,8 +176,7 @@ public class Robot extends IterativeRobot {
 			RobotParts.lift_motor_2.set(0);
 		}
 		
-
-        //Timer.delay(0.020);		/* wait for one motor update time period (50Hz)     */
+        Timer.delay(0.020);		/* wait for one motor update time period (50Hz)     */
         
 		navx.showData(stick);
 	}
@@ -195,15 +186,14 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void testPeriodic() {
-		
 		/* More navX Sensor Stuff - Data on dashboard*/
 		
-		while (isOperatorControl() && isEnabled()) {
+		//while (isOperatorControl() && isEnabled()) {
 	          
 	          Timer.delay(0.020);		/* wait for one motor update time period (50Hz)     */
 	          
 	          navx.showTestData(stick);
-	      }
+	     //}
 	}
 }
 
