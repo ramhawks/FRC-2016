@@ -8,17 +8,13 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class NavX implements PIDOutput {
 	private AHRS ahrs;
-	private PIDController pid_controller;
+	private PIDController turnController;
 	private volatile double rotateToAngleRate;
-	
-	private volatile Joystick stick;
-	private volatile float angle;
-	private volatile RobotDrive drive;
-	private Thread turn_thread;
 	
 	// PID Controller constants
 	static final double kP = 0.03;
@@ -38,31 +34,11 @@ public class NavX implements PIDOutput {
 	          DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), true);
 	      }
 		
-		pid_controller = new PIDController(kP, kI, kD, kF, ahrs, this);
-		pid_controller.setInputRange(-180.0f,  180.0f);
-		pid_controller.setOutputRange(-1.0, 1.0);
-		pid_controller.setAbsoluteTolerance(kToleranceDegrees);
-		pid_controller.setContinuous(true);
-		
-		turn_thread = new Thread(new Runnable() {
-			public void run() {
-				DriverStation.reportWarning("Hello world!", false);
-				ahrs.reset();
-				
-				DriverStation.reportWarning("angle: " + angle, false);
-				DriverStation.reportWarning("Rotating? " + ahrs.isRotating(), false);
-				
-				pid_controller.setSetpoint(angle);
-				pid_controller.enable();
-				
-				DriverStation.reportWarning("Rotating? " + ahrs.isRotating(), false);
-				
-				/*while(ahrs.isRotating()) {
-					drive.mecanumDrive_Cartesian(stick.getX(), stick.getY(), 
-						rotateToAngleRate, ahrs.getAngle());
-				}*/
-			}
-		});
+		turnController = new PIDController(kP, kI, kD, kF, ahrs, this);
+		turnController.setInputRange(-180.0f,  180.0f);
+		turnController.setOutputRange(-1.0, 1.0);
+		turnController.setAbsoluteTolerance(kToleranceDegrees);
+		turnController.setContinuous(true);
 	}
 	
 	
@@ -237,15 +213,47 @@ public class NavX implements PIDOutput {
         SmartDashboard.putNumber(   "IMU_Byte_Count",       Math.round(100.0 * ahrs.getByteCount()) / 100.0);
         SmartDashboard.putNumber(   "IMU_Update_Count",     Math.round(100.0 * ahrs.getUpdateCount()) / 100.0);
 	}
-
-
-
 	
-	public void rotateToAngle(Joystick stick, float angle, RobotDrive drive) {
-		this.stick = stick;
-		this.angle = angle;
-		this.drive = drive;
-		turn_thread.start();
+	public void teleopPeriodic(Joystick stick, RobotDrive drive) {		
+		boolean rotateToAngle = false;
+		
+		// button numbers start at 1, not 0!
+		
+        if ( stick.getRawButton(1)) {
+            ahrs.reset();
+        }
+        if ( stick.getRawButton(2)) {
+            turnController.setSetpoint(0.0f);
+            rotateToAngle = true;
+        } else if ( stick.getRawButton(3)) {
+            turnController.setSetpoint(90.0f);
+            rotateToAngle = true;
+        } else if ( stick.getRawButton(4)) {
+            turnController.setSetpoint(179.9f);
+            rotateToAngle = true;
+        } else if ( stick.getRawButton(5)) {
+            turnController.setSetpoint(-90.0f);
+            rotateToAngle = true;
+        }
+        double currentRotationRate;
+        if ( rotateToAngle ) {
+            turnController.enable();
+            currentRotationRate = rotateToAngleRate;
+        } else {
+            turnController.disable();
+            currentRotationRate = stick.getTwist();
+        }
+        try {
+            /* Use the joystick X axis for lateral movement,          */
+            /* Y axis for forward movement, and the current           */
+            /* calculated rotation rate (or joystick Z axis),         */
+            /* depending upon whether "rotate to angle" is active.    */
+            drive.mecanumDrive_Cartesian(stick.getX(), stick.getY(), 
+                                           currentRotationRate, ahrs.getAngle());
+        } catch( RuntimeException ex ) {
+            DriverStation.reportError("Error communicating with drive system:  " + ex.getMessage(), true);
+        }
+        Timer.delay(0.005);
 	}
 	
 	@Override

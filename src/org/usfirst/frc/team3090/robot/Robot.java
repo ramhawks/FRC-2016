@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.RobotDrive.MotorType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -34,7 +35,9 @@ public class Robot extends IterativeRobot {
 	Thread vision_thread; //camera
 	Thread grip;
 	
+	// NavX
 	NavX navx;
+
 	
 	NetworkTable table;
 	/**
@@ -102,12 +105,16 @@ public class Robot extends IterativeRobot {
 				Timer.delay(1);
 			}
 		});
-		grip.start();
+		//grip.start();
 		
 		/*navX micro Sensor*/
+		drive.setInvertedMotor(MotorType.kFrontLeft, true);
+		drive.setInvertedMotor(MotorType.kRearLeft, true);
+		drive.setExpiration(0.1);
 		
 		navx = new NavX();
 		navx.init();
+
 	}
 
 	/**
@@ -147,7 +154,7 @@ public class Robot extends IterativeRobot {
 	
 	@Override
 	public void teleopInit() {
-		navx.rotateToAngle(stick, 90.0f, drive);
+		//navx.rotateToAngle(stick, 90.0f, drive);
 	}
 
 	
@@ -161,24 +168,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		drive.tankDrive(stick.getRawAxis(1), stick.getRawAxis(5));
-		
-		if (stick.getRawButton(3)) {
-			// y
-			RobotParts.lift_motor_1.set(1);
-			RobotParts.lift_motor_2.set(-1);
-		} else if (stick.getRawButton(1)) {
-			// a
-			RobotParts.lift_motor_1.set(-1);
-			RobotParts.lift_motor_2.set(1);
-		} else {
-			RobotParts.lift_motor_1.set(0);
-			RobotParts.lift_motor_2.set(0);
-		}
-		
-        Timer.delay(0.020);		/* wait for one motor update time period (50Hz)     */
-        
-		navx.showData(stick);
+		navx.teleopPeriodic(stick, drive);
 	}
 
 	/**
@@ -192,7 +182,7 @@ public class Robot extends IterativeRobot {
 	          
 	          Timer.delay(0.020);		/* wait for one motor update time period (50Hz)     */
 	          
-	          navx.showTestData(stick);
+	          //navx.showTestData(stick);
 	     //}
 	}
 }
