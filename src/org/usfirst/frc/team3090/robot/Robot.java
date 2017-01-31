@@ -37,7 +37,6 @@ public class Robot extends IterativeRobot {
 	
 	// NavX
 	NavX navx;
-
 	
 	NetworkTable table;
 	/**
