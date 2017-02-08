@@ -88,7 +88,7 @@ public class Robot extends IterativeRobot {
 			}
 		});
 		vision_thread.setDaemon(true);
-		//vision_thread.start();
+		vision_thread.start();
 		
 		table = NetworkTable.getTable("GRIP/myContoursReport");
 		
